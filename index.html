@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alkhulafau SHS Student Management</title>
+    <style>
+        :root {
+            --wine: #722f37;
+            --wine-light: #8a3a44;
+            --wine-dark: #5a252c;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --gray: #e0e0e0;
+            --dark-gray: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--white);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: var(--wine);
+            color: var(--white);
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            background-color: var(--wine-light);
+        }
+        
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 {
+            color: var(--wine);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--gray);
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--wine);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--wine-light);
+        }
+        
+        button.secondary {
+            background-color: var(--gray);
+            color: var(--dark-gray);
+        }
+        
+        button.secondary:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--gray);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--wine);
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-container input {
+            flex: 1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        table th, table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        table th {
+            background-color: var(--wine);
+            color: var(--white);
+        }
+        
+        table tr:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .student-details {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .student-details.active {
+            display: block;
+        }
+        
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .info-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--wine);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        
+        footer {
+            background-color: var(--wine);
+            color: var(--white);
+            text-align: center;
+            padding: 1rem 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 4px;
+            background-color: var(--wine);
+            color: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            display: block;
+            animation: fadeInOut 3s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            nav ul {
+                justify-content: center;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .student-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Alkhulafau SHS Student Management</h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" class="nav-link active" data-page="dashboard">Dashboard</a></li>
+                        <li><a href="#" class="nav-link" data-page="register">Register Students</a></li>
+                        <li><a href="#" class="nav-link" data-page="search">Search Students</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="card">
+                    <h2>Dashboard</h2>
+                    <div class="stats">
+                        <p>Total Students: <span id="total-students">0</span></p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Quick Actions</h2>
+                    <div class="actions">
+                        <button id="quick-register" class="nav-link" data-page="register">Register New Students</button>
+                        <button id="quick-search" class="nav-link" data-page="search">Search Students</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Register Students Page -->
+            <div id="register" class="page">
+                <div class="card">
+                    <h2>Register Students</h2>
+                    <p>Upload an Excel file with student information or add students manually.</p>
+                    
+                    <div class="file-upload" id="file-upload-area">
+                        <p>Drag & drop an Excel file here or click to browse</p>
+                        <input type="file" id="excel-file" accept=".xlsx, .xls">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button id="manual-add-btn">Add Student Manually</button>
+                    </div>
+                    
+                    <div id="manual-form" style="display: none;">
+                        <h3>Add Student Manually</h3>
+                        <form id="student-form">
+                            <div class="form-group">
+                                <label for="index-number">Index Number</label>
+                                <input type="text" id="index-number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="full-name">Full Name</label>
+                                <input type="text" id="full-name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="class">Class</label>
+                                <input type="text" id="class">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="house">House</label>
+                                <input type="text" id="house">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select id="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="date-of-birth">Date of Birth</label>
+                                <input type="date" id="date-of-birth">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="guardian-name">Guardian Name</label>
+                                <input type="text" id="guardian-name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="guardian-phone">Guardian Phone</label>
+                                <input type="tel" id="guardian-phone">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <textarea id="address" rows="3"></textarea>
+                            </div>
+                            
+                            <button type="submit">Add Student</button>
+                            <button type="button" id="cancel-manual" class="secondary">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Students Page -->
+            <div id="search" class="page">
+                <div class="card">
+                    <h2>Search Students</h2>
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Enter student name or index number">
+                        <button id="search-btn">Search</button>
+                    </div>
+                    
+                    <div id="search-results">
+                        <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Index Number</th>
+                                    <th>Full Name</th>
+                                    <th>Class</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-tbody">
+                                <!-- Students will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="export-excel">Export to Excel</button>
+                        <button id="export-pdf">Print to PDF</button>
+                    </div>
+                </div>
+                
+                <div id="student-details" class="student-details card">
+                    <h2>Student Details</h2>
+                    <div id="student-info" class="student-info">
+                        <!-- Student details will be populated here -->
+                    </div>
+                    <div class="actions">
+                        <button id="print-student">Print Student Details</button>
+                        <button id="back-to-search" class="secondary">Back to Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Alkhulafau Senior High School, Ghana. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <div id="notification" class="notification"></div>
+
+    <!-- Include external libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <script>
+        // Application state
+        const state = {
+            students: [],
+            currentStudent: null
+        };
+
+        // DOM elements
+        const elements = {
+            pages: document.querySelectorAll('.page'),
+            navLinks: document.querySelectorAll('.nav-link'),
+            fileUploadArea: document.getElementById('file-upload-area'),
+            excelFileInput: document.getElementById('excel-file'),
+            manualAddBtn: document.getElementById('manual-add-btn'),
+            manualForm: document.getElementById('manual-form'),
+            studentForm: document.getElementById('student-form'),
+            cancelManual: document.getElementById('cancel-manual'),
+            searchInput: document.getElementById('search-input'),
+            searchBtn: document.getElementById('search-btn'),
+            studentsTbody: document.getElementById('students-tbody'),
+            studentDetails: document.getElementById('student-details'),
+            studentInfo: document.getElementById('student-info'),
+            backToSearch: document.getElementById('back-to-search'),
+            printStudent: document.getElementById('print-student'),
+            exportExcel: document.getElementById('export-excel'),
+            exportPdf: document.getElementById('export-pdf'),
+            totalStudents: document.getElementById('total-students'),
+            notification: document.getElementById('notification')
+        };
+
+        // Initialize the application
+        function init() {
+            loadStudents();
+            setupEventListeners();
+            updateDashboard();
+        }
+
+        // Load students from localStorage
+        function loadStudents() {
+            const stored = localStorage.getItem('alkhulafauStudents');
+            if (stored) {
+                state.students = JSON.parse(stored);
+            }
+        }
+
+        // Save students to localStorage
+        function saveStudents() {
+            localStorage.setItem('alkhulafauStudents', JSON.stringify(state.students));
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation
+            elements.navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.getAttribute('data-page');
+                    showPage(pageId);
+                    
+                    // Update active nav link
+                    elements.navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+
+            // File upload
+            elements.fileUploadArea.addEventListener('click', () => {
+                elements.excelFileInput.click();
+            });
+            
+            elements.excelFileInput.addEventListener('change', handleFileUpload);
+
+            // Manual student form
+            elements.manualAddBtn.addEventListener('click', () => {
+                elements.manualForm.style.display = 'block';
+                elements.manualAddBtn.style.display = 'none';
+            });
+            
+            elements.cancelManual.addEventListener('click', () => {
+                elements.manualForm.style.display = 'none';
+                elements.manualAddBtn.style.display = 'block';
+                elements.studentForm.reset();
+            });
+            
+            elements.studentForm.addEventListener('submit', handleManualAdd);
+
+            // Search functionality
+            elements.searchBtn.addEventListener('click', handleSearch);
+            elements.searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+
+            // Student details
+            elements.backToSearch.addEventListener('click', () => {
+                elements.studentDetails.classList.remove('active');
+            });
+            
+            elements.printStudent.addEventListener('click', printStudentDetails);
+
+            // Export functionality
+            elements.exportExcel.addEventListener('click', exportToExcel);
+            elements.exportPdf.addEventListener('click', exportToPdf);
+        }
+
+        // Show specific page
+        function showPage(pageId) {
+            elements.pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'search') {
+                displayAllStudents();
+            } else if (pageId === 'dashboard') {
+                updateDashboard();
+            }
+        }
+
+        // Handle Excel file upload
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Assuming first sheet
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                if (jsonData.length > 0) {
+                    // Process and add students
+                    jsonData.forEach(student => {
+                        addStudent(student);
+                    });
+                    
+                    showNotification(`Successfully added ${jsonData.length} students`);
+                    elements.excelFileInput.value = ''; // Reset file input
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Handle manual student addition
+        function handleManualAdd(e) {
+            e.preventDefault();
+            
+            const student = {
+                indexNumber: document.getElementById('index-number').value,
+                fullName: document.getElementById('full-name').value,
+                class: document.getElementById('class').value,
+                house: document.getElementById('house').value,
+                gender: document.getElementById('gender').value,
+                dateOfBirth: document.getElementById('date-of-birth').value,
+                guardianName: document.getElementById('guardian-name').value,
+                guardianPhone: document.getElementById('guardian-phone').value,
+                address: document.getElementById('address').value
+            };
+            
+            addStudent(student);
+            elements.studentForm.reset();
+            elements.manualForm.style.display = 'none';
+            elements.manualAddBtn.style.display = 'block';
+            
+            showNotification('Student added successfully');
+        }
+
+        // Add student to state and storage
+        function addStudent(student) {
+            // Check if student already exists
+            const existingIndex = state.students.findIndex(s => s.indexNumber === student.indexNumber);
+            
+            if (existingIndex !== -1) {
+                // Update existing student
+                state.students[existingIndex] = student;
+            } else {
+                // Add new student
+                state.students.push(student);
+            }
+            
+            saveStudents();
+            updateDashboard();
+        }
+
+        // Handle search
+        function handleSearch() {
+            const query = elements.searchInput.value.trim().toLowerCase();
+            
+            if (!query) {
+                displayAllStudents();
+                return;
+            }
+            
+            const results = state.students.filter(student => 
+                student.fullName.toLowerCase().includes(query) || 
+                student.indexNumber.toLowerCase().includes(query)
+            );
+            
+            displaySearchResults(results);
+        }
+
+        // Display all students in table
+        function displayAllStudents() {
+            displaySearchResults(state.students);
+        }
+
+        // Display search results in table
+        function displaySearchResults(students) {
+            elements.studentsTbody.innerHTML = '';
+            
+            if (students.length === 0) {
+                elements.studentsTbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No students found</td></tr>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.indexNumber || 'N/A'}</td>
+                    <td>${student.fullName || 'N/A'}</td>
+                    <td>${student.class || 'N/A'}</td>
+                    <td>
+                        <button class="view-student" data-index="${student.indexNumber}">View</button>
+                    </td>
+                `;
+                elements.studentsTbody.appendChild(row);
+            });
+            
+            // Add event listeners to view buttons
+            document.querySelectorAll('.view-student').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const indexNumber = e.target.getAttribute('data-index');
+                    viewStudentDetails(indexNumber);
+                });
+            });
+        }
+
+        // View student details
+        function viewStudentDetails(indexNumber) {
+            const student = state.students.find(s => s.indexNumber === indexNumber);
+            
+            if (!student) {
+                showNotification('Student not found');
+                return;
+            }
+            
+            state.currentStudent = student;
+            
+            // Populate student details
+            elements.studentInfo.innerHTML = `
+                <div class="info-item">
+                    <span class="info-label">Index Number:</span>
+                    <span>${student.indexNumber || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Full Name:</span>
+                    <span>${student.fullName || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Class:</span>
+                    <span>${student.class || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">House:</span>
+                    <span>${student.house || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gender:</span>
+                    <span>${student.gender || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date of Birth:</span>
+                    <span>${student.dateOfBirth || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Guardian Name:</span>
+                    <span>${student.guardianName || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Guardian Phone:</span>
+                    <span>${student.guardianPhone || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Address:</span>
+                    <span>${student.address || 'N/A'}</span>
+                </div>
+            `;
+            
+            elements.studentDetails.classList.add('active');
+        }
+
+        // Print student details
+        function printStudentDetails() {
+            if (!state.currentStudent) return;
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Alkhulafau SHS - Student Details', 20, 20);
+            
+            // Add student information
+            doc.setFontSize(12);
+            let yPosition = 40;
+            
+            const student = state.currentStudent;
+            const fields = [
+                { label: 'Index Number', value: student.indexNumber },
+                { label: 'Full Name', value: student.fullName },
+                { label: 'Class', value: student.class },
+                { label: 'House', value: student.house },
+                { label: 'Gender', value: student.gender },
+                { label: 'Date of Birth', value: student.dateOfBirth },
+                { label: 'Guardian Name', value: student.guardianName },
+                { label: 'Guardian Phone', value: student.guardianPhone },
+                { label: 'Address', value: student.address }
+            ];
+            
+            fields.forEach(field => {
+                if (field.value) {
+                    doc.text(`${field.label}: ${field.value}`, 20, yPosition);
+                    yPosition += 10;
+                }
+            });
+            
+            // Save the PDF
+            doc.save(`student_${student.indexNumber}_details.pdf`);
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (state.students.length === 0) {
+                showNotification('No students to export');
+                return;
+            }
+            
+            const worksheet = XLSX.utils.json_to_sheet(state.students);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+            
+            // Generate and download the file
+            XLSX.writeFile(workbook, 'alkhulafau_students.xlsx');
+            showNotification('Students exported to Excel successfully');
+        }
+
+        // Export to PDF
+        function exportToPdf() {
+            if (state.students.length === 0) {
+                showNotification('No students to export');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Alkhulafau SHS - Student List', 20, 20);
+            
+            // Create table
+            const tableColumn = ['Index Number', 'Full Name', 'Class', 'House', 'Gender'];
+            const tableRows = [];
+            
+            state.students.forEach(student => {
+                const studentData = [
+                    student.indexNumber || 'N/A',
+                    student.fullName || 'N/A',
+                    student.class || 'N/A',
+                    student.house || 'N/A',
+                    student.gender || 'N/A'
+                ];
+                tableRows.push(studentData);
+            });
+            
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 30,
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [114, 47, 55] } // Wine color
+            });
+            
+            // Save the PDF
+            doc.save('alkhulafau_students.pdf');
+            showNotification('Students exported to PDF successfully');
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            elements.totalStudents.textContent = state.students.length;
+        }
+
+        // Show notification
+        function showNotification(message) {
+            elements.notification.textContent = message;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
