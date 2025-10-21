@@ -96,6 +96,69 @@
     </div>
 
     <!-- Keep your existing Upload and Search pages -->
+     <!-- Upload Placement Page -->
+            <div id="upload" class="page">
+                <div class="card">
+                    <h2>Upload Student Placement List</h2>
+                    <p>Upload an Excel file containing student placement information. All columns will be preserved and displayed as-is.</p>
+                    
+                    <div class="file-upload" id="file-upload-area">
+                        <p>Drag & drop an Excel file here or click to browse</p>
+                        <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
+                    </div>
+                    
+                    <div id="upload-preview" class="upload-preview" style="display: none;">
+                        <h3>Upload Preview (First 10 rows)</h3>
+                        <div id="preview-table-container"></div>
+                        <div class="actions">
+                            <button id="confirm-upload">Confirm Upload</button>
+                            <button id="cancel-upload" class="secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Students Page -->
+            <div id="search" class="page">
+                <div class="card">
+                    <h2>Search Students</h2>
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Enter student name, index number, or any field">
+                        <button id="search-btn">Search</button>
+                    </div>
+                    
+                    <div id="search-results">
+                        <table id="students-table">
+                            <thead>
+                                <tr id="students-table-header">
+                                    <!-- Table headers will be populated dynamically -->
+                                </tr>
+                            </thead>
+                            <tbody id="students-tbody">
+                                <!-- Students will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="export-excel">Export to Excel</button>
+                        <button id="export-pdf">Print to PDF</button>
+                        <button id="clear-data" class="secondary">Clear All Data</button>
+                    </div>
+                </div>
+                
+                <div id="student-details" class="student-details card">
+                    <h2>Student Details</h2>
+                    <div id="student-info" class="student-info">
+                        <!-- Student details will be populated here -->
+                    </div>
+                    <div class="actions">
+                        <button id="print-student">Print Student Details</button>
+                        <button id="back-to-search" class="secondary">Back to Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
   </main>
 
   <div class="toast" id="toast"></div>
@@ -206,6 +269,482 @@
         }]
       }
     });
+
+
+
+        // Application state
+        const state = {
+            students: [],
+            currentStudent: null,
+            tableHeaders: []
+        };
+
+        // DOM elements
+        const elements = {
+            pages: document.querySelectorAll('.page'),
+            navLinks: document.querySelectorAll('.nav-link'),
+            fileUploadArea: document.getElementById('file-upload-area'),
+            excelFileInput: document.getElementById('excel-file'),
+            uploadPreview: document.getElementById('upload-preview'),
+            previewTableContainer: document.getElementById('preview-table-container'),
+            confirmUpload: document.getElementById('confirm-upload'),
+            cancelUpload: document.getElementById('cancel-upload'),
+            searchInput: document.getElementById('search-input'),
+            searchBtn: document.getElementById('search-btn'),
+            studentsTableHeader: document.getElementById('students-table-header'),
+            studentsTbody: document.getElementById('students-tbody'),
+            studentDetails: document.getElementById('student-details'),
+            studentInfo: document.getElementById('student-info'),
+            backToSearch: document.getElementById('back-to-search'),
+            printStudent: document.getElementById('print-student'),
+            exportExcel: document.getElementById('export-excel'),
+            exportPdf: document.getElementById('export-pdf'),
+            clearData: document.getElementById('clear-data'),
+            totalStudents: document.getElementById('total-students'),
+            lastUpdated: document.getElementById('last-updated'),
+            notification: document.getElementById('notification')
+        };
+
+        // Initialize the application
+        function init() {
+            loadStudents();
+            setupEventListeners();
+            updateDashboard();
+        }
+
+        // Load students from localStorage
+        function loadStudents() {
+            const stored = localStorage.getItem('alkhulafauStudents');
+            const headers = localStorage.getItem('alkhulafauHeaders');
+            const lastUpdated = localStorage.getItem('alkhulafauLastUpdated');
+            
+            if (stored) {
+                state.students = JSON.parse(stored);
+            }
+            
+            if (headers) {
+                state.tableHeaders = JSON.parse(headers);
+            }
+            
+            if (lastUpdated) {
+                elements.lastUpdated.textContent = new Date(parseInt(lastUpdated)).toLocaleString();
+            }
+        }
+
+        // Save students to localStorage
+        function saveStudents() {
+            localStorage.setItem('alkhulafauStudents', JSON.stringify(state.students));
+            localStorage.setItem('alkhulafauHeaders', JSON.stringify(state.tableHeaders));
+            localStorage.setItem('alkhulafauLastUpdated', Date.now().toString());
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation
+            elements.navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.getAttribute('data-page');
+                    showPage(pageId);
+                    
+                    // Update active nav link
+                    elements.navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+
+            // File upload
+            elements.fileUploadArea.addEventListener('click', () => {
+                elements.excelFileInput.click();
+            });
+            
+            elements.excelFileInput.addEventListener('change', handleFileUpload);
+            
+            // Upload confirmation
+            elements.confirmUpload.addEventListener('click', confirmUpload);
+            elements.cancelUpload.addEventListener('click', cancelUpload);
+
+            // Search functionality
+            elements.searchBtn.addEventListener('click', handleSearch);
+            elements.searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+
+            // Student details
+            elements.backToSearch.addEventListener('click', () => {
+                elements.studentDetails.classList.remove('active');
+            });
+            
+            elements.printStudent.addEventListener('click', printStudentDetails);
+
+            // Export functionality
+            elements.exportExcel.addEventListener('click', exportToExcel);
+            elements.exportPdf.addEventListener('click', exportToPdf);
+            
+            // Clear data
+            elements.clearData.addEventListener('click', clearAllData);
+        }
+
+        // Show specific page
+        function showPage(pageId) {
+            elements.pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'search') {
+                displayAllStudents();
+            } else if (pageId === 'dashboard') {
+                updateDashboard();
+            } else if (pageId === 'upload') {
+                // Reset upload form
+                elements.uploadPreview.style.display = 'none';
+                elements.excelFileInput.value = '';
+            }
+        }
+
+        // Handle Excel file upload
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Assuming first sheet
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (jsonData.length > 0) {
+                        // Extract headers
+                        const firstRow = jsonData[0];
+                        state.tableHeaders = Object.keys(firstRow);
+                        
+                        // Show preview
+                        showUploadPreview(jsonData.slice(0, 10)); // Show first 10 rows
+                    } else {
+                        showNotification('The uploaded file appears to be empty');
+                    }
+                } catch (error) {
+                    showNotification('Error reading file: ' + error.message);
+                }
+            };
+            reader.onerror = function() {
+                showNotification('Error reading file');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Show upload preview
+        function showUploadPreview(data) {
+            if (data.length === 0) return;
+            
+            // Create preview table
+            let tableHTML = '<table><thead><tr>';
+            
+            // Add headers
+            state.tableHeaders.forEach(header => {
+                tableHTML += `<th>${header}</th>`;
+            });
+            
+            tableHTML += '</tr></thead><tbody>';
+            
+            // Add data rows
+            data.forEach(row => {
+                tableHTML += '<tr>';
+                state.tableHeaders.forEach(header => {
+                    tableHTML += `<td>${row[header] || ''}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            elements.previewTableContainer.innerHTML = tableHTML;
+            elements.uploadPreview.style.display = 'block';
+            
+            // Store the full data for confirmation
+            elements.uploadPreview.dataset.fullData = JSON.stringify(data);
+        }
+
+        // Confirm upload and save data
+        function confirmUpload() {
+            try {
+                const fullData = JSON.parse(elements.uploadPreview.dataset.fullData);
+                
+                // Replace existing data with new upload
+                state.students = fullData;
+                saveStudents();
+                
+                // Reset upload form
+                elements.uploadPreview.style.display = 'none';
+                elements.excelFileInput.value = '';
+                
+                showNotification(`Successfully uploaded ${fullData.length} student records`);
+                updateDashboard();
+                
+                // Switch to search page to view data
+                showPage('search');
+                const searchLink = document.querySelector('[data-page="search"]');
+                elements.navLinks.forEach(l => l.classList.remove('active'));
+                searchLink.classList.add('active');
+            } catch (error) {
+                showNotification('Error processing upload: ' + error.message);
+            }
+        }
+
+        // Cancel upload
+        function cancelUpload() {
+            elements.uploadPreview.style.display = 'none';
+            elements.excelFileInput.value = '';
+        }
+
+        // Handle search
+        function handleSearch() {
+            const query = elements.searchInput.value.trim().toLowerCase();
+            
+            if (!query) {
+                displayAllStudents();
+                return;
+            }
+            
+            const results = state.students.filter(student => {
+                // Search across all fields
+                for (const key in student) {
+                    if (student[key] && student[key].toString().toLowerCase().includes(query)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            
+            displaySearchResults(results);
+        }
+
+        // Display all students in table
+        function displayAllStudents() {
+            displaySearchResults(state.students);
+        }
+
+        // Display search results in table
+        function displaySearchResults(students) {
+            // Clear previous results
+            elements.studentsTbody.innerHTML = '';
+            elements.studentsTableHeader.innerHTML = '';
+            
+            if (students.length === 0) {
+                elements.studentsTbody.innerHTML = '<tr><td colspan="' + (state.tableHeaders.length + 1) + '" style="text-align: center;">No students found</td></tr>';
+                return;
+            }
+            
+            // Create table headers
+            state.tableHeaders.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                elements.studentsTableHeader.appendChild(th);
+            });
+            
+            // Add actions header
+            const actionsTh = document.createElement('th');
+            actionsTh.textContent = 'Actions';
+            elements.studentsTableHeader.appendChild(actionsTh);
+            
+            // Create table rows
+            students.forEach((student, index) => {
+                const row = document.createElement('tr');
+                
+                // Add data cells
+                state.tableHeaders.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = student[header] || 'N/A';
+                    row.appendChild(td);
+                });
+                
+                // Add actions cell
+                const actionsTd = document.createElement('td');
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'View';
+                viewButton.className = 'view-student';
+                viewButton.dataset.index = index;
+                actionsTd.appendChild(viewButton);
+                row.appendChild(actionsTd);
+                
+                elements.studentsTbody.appendChild(row);
+            });
+            
+            // Add event listeners to view buttons
+            document.querySelectorAll('.view-student').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const studentIndex = e.target.getAttribute('data-index');
+                    viewStudentDetails(studentIndex);
+                });
+            });
+        }
+
+        // View student details
+        function viewStudentDetails(studentIndex) {
+            const student = state.students[studentIndex];
+            
+            if (!student) {
+                showNotification('Student not found');
+                return;
+            }
+            
+            state.currentStudent = student;
+            
+            // Populate student details
+            elements.studentInfo.innerHTML = '';
+            
+            state.tableHeaders.forEach(header => {
+                const infoItem = document.createElement('div');
+                infoItem.className = 'info-item';
+                
+                const infoLabel = document.createElement('span');
+                infoLabel.className = 'info-label';
+                infoLabel.textContent = header + ':';
+                
+                const infoValue = document.createElement('span');
+                infoValue.textContent = student[header] || 'N/A';
+                
+                infoItem.appendChild(infoLabel);
+                infoItem.appendChild(document.createElement('br'));
+                infoItem.appendChild(infoValue);
+                
+                elements.studentInfo.appendChild(infoItem);
+            });
+            
+            elements.studentDetails.classList.add('active');
+        }
+
+        // Print student details
+        function printStudentDetails() {
+            if (!state.currentStudent) return;
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Alkhulafau SHS - Student Details', 20, 20);
+            
+            // Add student information
+            doc.setFontSize(12);
+            let yPosition = 40;
+            
+            const student = state.currentStudent;
+            
+            state.tableHeaders.forEach(header => {
+                if (student[header]) {
+                    doc.text(`${header}: ${student[header]}`, 20, yPosition);
+                    yPosition += 10;
+                    
+                    // Add new page if needed
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                }
+            });
+            
+            // Save the PDF
+            doc.save(`student_${student.indexNumber || 'details'}.pdf`);
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (state.students.length === 0) {
+                showNotification('No students to export');
+                return;
+            }
+            
+            const worksheet = XLSX.utils.json_to_sheet(state.students);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+            
+            // Generate and download the file
+            XLSX.writeFile(workbook, 'alkhulafau_students.xlsx');
+            showNotification('Students exported to Excel successfully');
+        }
+
+        // Export to PDF
+        function exportToPdf() {
+            if (state.students.length === 0) {
+                showNotification('No students to export');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Alkhulafau SHS - Student List', 20, 20);
+            
+            // Create table
+            const tableColumn = state.tableHeaders;
+            const tableRows = [];
+            
+            state.students.forEach(student => {
+                const rowData = [];
+                state.tableHeaders.forEach(header => {
+                    rowData.push(student[header] || 'N/A');
+                });
+                tableRows.push(rowData);
+            });
+            
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 30,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [114, 47, 55] } // Wine color
+            });
+            
+            // Save the PDF
+            doc.save('alkhulafau_students.pdf');
+            showNotification('Students exported to PDF successfully');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all student data? This action cannot be undone.')) {
+                state.students = [];
+                state.tableHeaders = [];
+                localStorage.removeItem('alkhulafauStudents');
+                localStorage.removeItem('alkhulafauHeaders');
+                localStorage.removeItem('alkhulafauLastUpdated');
+                
+                showNotification('All student data has been cleared');
+                updateDashboard();
+                displayAllStudents();
+            }
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            elements.totalStudents.textContent = state.students.length;
+            elements.lastUpdated.textContent = state.students.length > 0 ? 
+                new Date(parseInt(localStorage.getItem('alkhulafauLastUpdated'))).toLocaleString() : 'Never';
+        }
+
+        // Show notification
+        function showNotification(message) {
+            elements.notification.textContent = message;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+  
   </script>
 </body>
 </html>
