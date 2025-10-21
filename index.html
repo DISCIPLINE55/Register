@@ -663,7 +663,11 @@
         </div>
         
         <div id="upload-preview" class="upload-preview" style="display: none;">
-          <h3><i class="fas fa-eye"></i> Upload Preview (First 10 rows)</h3>
+          <h3><i class="fas fa-eye"></i> Upload Preview</h3>
+          <div id="preview-info" class="preview-info" style="margin-bottom: 1rem; padding: 0.5rem; background-color: rgba(114, 47, 55, 0.05); border-radius: var(--radius);">
+            <p><strong>Total Records:</strong> <span id="total-records">0</span></p>
+            <p><strong>Preview Rows:</strong> <span id="preview-rows">0</span></p>
+          </div>
           <div id="preview-table-container" style="overflow-x: auto;"></div>
           <div class="actions">
             <button id="confirm-upload" class="btn-success">
@@ -793,7 +797,8 @@
         class: '',
         year: '',
         program: ''
-      }
+      },
+      previewRows: 50 // Increased from 10 to 50
     };
 
     // DOM elements
@@ -812,6 +817,8 @@
       excelFileInput: document.getElementById('excel-file'),
       uploadPreview: document.getElementById('upload-preview'),
       previewTableContainer: document.getElementById('preview-table-container'),
+      totalRecords: document.getElementById('total-records'),
+      previewRows: document.getElementById('preview-rows'),
       confirmUpload: document.getElementById('confirm-upload'),
       cancelUpload: document.getElementById('cancel-upload'),
       
@@ -1003,8 +1010,8 @@
             const firstRow = jsonData[0];
             state.tableHeaders = Object.keys(firstRow);
             
-            // Show preview
-            showUploadPreview(jsonData.slice(0, 10)); // Show first 10 rows
+            // Show preview with count information
+            showUploadPreview(jsonData);
           } else {
             showToast('The uploaded file appears to be empty', 'warning');
           }
@@ -1018,9 +1025,13 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Show upload preview
+    // Show upload preview with count information
     function showUploadPreview(data) {
       if (data.length === 0) return;
+      
+      // Update preview info
+      elements.totalRecords.textContent = data.length;
+      elements.previewRows.textContent = Math.min(state.previewRows, data.length);
       
       // Create preview table
       let tableHTML = '<table><thead><tr>';
@@ -1032,8 +1043,9 @@
       
       tableHTML += '</tr></thead><tbody>';
       
-      // Add data rows
-      data.forEach(row => {
+      // Add data rows - show up to previewRows (50) instead of just 10
+      const previewData = data.slice(0, state.previewRows);
+      previewData.forEach(row => {
         tableHTML += '<tr>';
         state.tableHeaders.forEach(header => {
           tableHTML += `<td>${row[header] || ''}</td>`;
