@@ -3,39 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alkhulafau SHS Student Management</title>
+  <title>Alkhulafau SHS - Student Management System</title>
   
-  <!-- Manifest for PWA -->
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#722f37">
   
-  <!-- Font Awesome for icons -->
+  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    /* CSS Variables for theming */
+    /* CSS Variables for Theming */
     :root {
-      --wine: #722f37;
-      --wine-light: #8a3a44;
-      --wine-dark: #5a262d;
+      --primary: #722f37;
+      --primary-light: #8a3a44;
+      --primary-dark: #5a262d;
+      --secondary: #2c5530;
+      --accent: #f39c12;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --info: #3498db;
+      
       --white: #ffffff;
       --light-bg: #f8f9fa;
       --light-card: #ffffff;
-      --light-text: #333333;
+      --light-text: #2c3e50;
       --light-border: #e0e0e0;
+      
       --dark-bg: #1a1a1a;
       --dark-card: #2d2d2d;
-      --dark-text: #f0f0f0;
+      --dark-text: #ecf0f1;
       --dark-border: #444444;
-      --success: #28a745;
-      --danger: #dc3545;
-      --warning: #ffc107;
-      --info: #17a2b8;
+      
       --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
       --radius: 8px;
+      --radius-lg: 12px;
     }
 
-    /* Base styles */
+    /* Reset and Base Styles */
     * {
       margin: 0;
       padding: 0;
@@ -47,7 +60,7 @@
       background-color: var(--light-bg);
       color: var(--light-text);
       line-height: 1.6;
-      transition: background-color 0.3s, color 0.3s;
+      transition: all 0.3s ease;
     }
 
     body.dark {
@@ -55,22 +68,118 @@
       color: var(--dark-text);
     }
 
+    /* Layout Components */
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 20px;
     }
 
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+    /* Authentication Styles */
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 2rem;
+    }
+
+    .auth-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 3rem;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    body.dark .auth-card {
+      background: var(--dark-card);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .auth-logo i {
+      font-size: 2.5rem;
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--light-text);
+    }
+
+    body.dark .form-label {
+      color: var(--dark-text);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--light-border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    body.dark .form-control {
+      background: var(--dark-bg);
+      border-color: var(--dark-border);
+      color: var(--dark-text);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
+    }
+
+    /* Main Application Layout */
+    .app-container {
+      display: none;
+    }
+
+    .app-container.active {
+      display: block;
+    }
+
     /* Header */
     header {
-      background-color: var(--wine);
+      background: var(--primary);
       color: var(--white);
       padding: 1rem 0;
       box-shadow: var(--shadow);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
     }
 
     .header-content {
@@ -82,116 +191,89 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 1rem;
     }
 
     .logo i {
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
 
-    .header-actions {
+    .user-menu {
       display: flex;
-      gap: 10px;
-    }
-
-    /* Buttons */
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.6rem 1.2rem;
-      font-weight: 500;
-      transition: all 0.3s;
-      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 1rem;
     }
 
-    .btn-primary {
-      background-color: var(--wine);
-      color: var(--white);
-    }
-
-    .btn-primary:hover {
-      background-color: var(--wine-light);
-    }
-
-    .btn-secondary {
-      background-color: var(--light-border);
-      color: var(--light-text);
-    }
-
-    body.dark .btn-secondary {
-      background-color: var(--dark-border);
-      color: var(--dark-text);
-    }
-
-    .btn-secondary:hover {
-      background-color: #d0d0d0;
-    }
-
-    body.dark .btn-secondary:hover {
-      background-color: #555555;
-    }
-
-    .btn-success {
-      background-color: var(--success);
-      color: var(--white);
-    }
-
-    .btn-danger {
-      background-color: var(--danger);
-      color: var(--white);
-    }
-
-    .btn-warning {
-      background-color: var(--warning);
-      color: var(--dark-text);
-    }
-
-    .btn-info {
-      background-color: var(--info);
-      color: var(--white);
-    }
-
-    .theme-toggle {
-      background: transparent;
-      color: var(--white);
-      font-size: 1.2rem;
-      padding: 0.5rem;
-    }
-
-    /* Navigation */
-    nav {
-      background-color: var(--white);
-      box-shadow: var(--shadow);
-      position: sticky;
-      top: 70px;
-      z-index: 99;
-    }
-
-    body.dark nav {
-      background-color: var(--dark-card);
-    }
-
-    .nav-container {
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-light);
       display: flex;
+      align-items: center;
       justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--light-card);
+      height: calc(100vh - 70px);
+      position: fixed;
+      left: 0;
+      top: 70px;
+      overflow-y: auto;
+      transition: all 0.3s;
+      box-shadow: var(--shadow);
+      z-index: 999;
+    }
+
+    body.dark .sidebar {
+      background: var(--dark-card);
+    }
+
+    .sidebar.collapsed {
+      width: 70px;
+    }
+
+    .nav-section {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--light-border);
+    }
+
+    body.dark .nav-section {
+      border-bottom-color: var(--dark-border);
+    }
+
+    .nav-title {
+      padding: 0 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar.collapsed .nav-title {
+      display: none;
     }
 
     .nav-links {
-      display: flex;
       list-style: none;
-      gap: 0;
     }
 
     .nav-link {
-      padding: 1rem 1.5rem;
-      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1.5rem;
       color: var(--light-text);
-      font-weight: 500;
+      text-decoration: none;
       transition: all 0.3s;
-      border-bottom: 3px solid transparent;
+      border-left: 3px solid transparent;
     }
 
     body.dark .nav-link {
@@ -199,37 +281,56 @@
     }
 
     .nav-link:hover, .nav-link.active {
-      background-color: rgba(114, 47, 55, 0.1);
-      border-bottom-color: var(--wine);
+      background: rgba(114, 47, 55, 0.1);
+      border-left-color: var(--primary);
+      color: var(--primary);
     }
 
     body.dark .nav-link:hover, body.dark .nav-link.active {
-      background-color: rgba(114, 47, 55, 0.3);
+      background: rgba(114, 47, 55, 0.2);
     }
 
-    /* Main content */
-    main {
-      padding: 2rem 0;
-      min-height: calc(100vh - 200px);
+    .nav-link i {
+      width: 20px;
+      text-align: center;
     }
 
-    .page {
+    .sidebar.collapsed .nav-link span {
       display: none;
     }
 
-    .page.active {
-      display: block;
-      animation: fadeIn 0.5s ease;
+    /* Main Content */
+    .main-content {
+      margin-left: 280px;
+      padding: 2rem;
+      transition: all 0.3s;
+      min-height: calc(100vh - 70px);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .main-content.expanded {
+      margin-left: 70px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    body.dark .page-title {
+      color: var(--primary-light);
     }
 
     /* Cards */
     .card {
-      background-color: var(--light-card);
+      background: var(--light-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 1.5rem;
@@ -237,47 +338,60 @@
     }
 
     body.dark .card {
-      background-color: var(--dark-card);
+      background: var(--dark-card);
     }
 
-    .card h2 {
-      margin-bottom: 1rem;
-      color: var(--wine);
+    .card-header {
       display: flex;
+      justify-content: between;
       align-items: center;
-      gap: 10px;
+      margin-bottom: 1.5rem;
     }
 
-    body.dark .card h2 {
-      color: var(--wine-light);
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--primary);
     }
 
-    /* Dashboard */
-    .stats-container {
+    body.dark .card-title {
+      color: var(--primary-light);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 1.5rem;
       margin-bottom: 2rem;
     }
 
     .stat-card {
-      background: linear-gradient(135deg, var(--wine), var(--wine-light));
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
       color: var(--white);
       padding: 1.5rem;
       border-radius: var(--radius);
-      text-align: center;
       box-shadow: var(--shadow);
     }
 
-    .stat-card i {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+    .stat-card.secondary {
+      background: linear-gradient(135deg, var(--secondary), #3a6b40);
+    }
+
+    .stat-card.accent {
+      background: linear-gradient(135deg, var(--accent), #f1c40f);
+    }
+
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.9;
     }
 
     .stat-value {
       font-size: 2rem;
       font-weight: bold;
-      margin: 0.5rem 0;
+      margin-bottom: 0.5rem;
     }
 
     .stat-label {
@@ -285,72 +399,25 @@
       opacity: 0.9;
     }
 
-    .chart-container {
-      margin: 2rem 0;
-      background-color: var(--light-card);
-      padding: 1.5rem;
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    body.dark .chart-container {
-      background-color: var(--dark-card);
-    }
-
-    .actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-top: 1.5rem;
-    }
-
-    /* Upload page */
-    .file-upload {
-      border: 2px dashed var(--light-border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin: 1.5rem 0;
-    }
-
-    body.dark .file-upload {
-      border-color: var(--dark-border);
-    }
-
-    .file-upload:hover {
-      border-color: var(--wine);
-      background-color: rgba(114, 47, 55, 0.05);
-    }
-
-    body.dark .file-upload:hover {
-      background-color: rgba(114, 47, 55, 0.1);
-    }
-
-    .file-upload i {
-      font-size: 3rem;
-      color: var(--wine);
-      margin-bottom: 1rem;
-    }
-
-    .file-upload p {
-      margin-bottom: 1rem;
-    }
-
-    .upload-preview {
-      margin-top: 2rem;
-    }
-
-    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 1rem 0;
+      background: var(--light-card);
+    }
+
+    body.dark table {
+      background: var(--dark-card);
     }
 
     th, td {
-      padding: 0.75rem;
+      padding: 1rem;
       text-align: left;
       border-bottom: 1px solid var(--light-border);
     }
@@ -360,150 +427,108 @@
     }
 
     th {
-      background-color: rgba(114, 47, 55, 0.1);
+      background: rgba(114, 47, 55, 0.1);
       font-weight: 600;
+      color: var(--primary);
     }
 
     body.dark th {
-      background-color: rgba(114, 47, 55, 0.2);
+      background: rgba(114, 47, 55, 0.2);
+      color: var(--primary-light);
     }
 
     tr:hover {
-      background-color: rgba(114, 47, 55, 0.05);
+      background: rgba(114, 47, 55, 0.05);
     }
 
     body.dark tr:hover {
-      background-color: rgba(114, 47, 55, 0.1);
+      background: rgba(114, 47, 55, 0.1);
     }
 
-    /* Search and filter */
-    .search-container {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .search-input {
-      flex: 1;
-      min-width: 250px;
-      padding: 0.75rem;
-      border: 1px solid var(--light-border);
-      border-radius: var(--radius);
-      font-size: 1rem;
-    }
-
-    body.dark .search-input {
-      background-color: var(--dark-card);
-      border-color: var(--dark-border);
-      color: var(--dark-text);
-    }
-
-    .filter-container {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-select {
-      padding: 0.5rem;
-      border: 1px solid var(--light-border);
-      border-radius: var(--radius);
-      background-color: var(--white);
-    }
-
-    body.dark .filter-select {
-      background-color: var(--dark-card);
-      border-color: var(--dark-border);
-      color: var(--dark-text);
-    }
-
-    /* Student details */
-    .student-details {
-      display: none;
-    }
-
-    .student-details.active {
-      display: block;
-    }
-
-    .student-info {
+    /* Forms */
+    .form-row {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1rem;
-      margin: 1.5rem 0;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
     }
 
-    .info-item {
-      padding: 1rem;
-      background-color: rgba(114, 47, 55, 0.05);
-      border-radius: var(--radius);
-    }
-
-    body.dark .info-item {
-      background-color: rgba(114, 47, 55, 0.1);
-    }
-
-    .info-label {
-      font-weight: 600;
-      color: var(--wine);
-    }
-
-    body.dark .info-label {
-      color: var(--wine-light);
-    }
-
-    /* Toast notification */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--wine);
-      color: var(--white);
-      padding: 1rem 1.5rem;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    .form-actions {
       display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      z-index: 1000;
-      transform: translateY(100px);
-      opacity: 0;
-      transition: transform 0.3s, opacity 0.3s;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-size: 0.875rem;
     }
 
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
     }
 
-    .toast.success {
-      background-color: var(--success);
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
     }
 
-    .toast.error {
-      background-color: var(--danger);
+    .btn-secondary {
+      background: var(--light-border);
+      color: var(--light-text);
     }
 
-    .toast.warning {
-      background-color: var(--warning);
+    body.dark .btn-secondary {
+      background: var(--dark-border);
       color: var(--dark-text);
     }
 
-    .toast.info {
-      background-color: var(--info);
+    .btn-success { background: var(--success); color: var(--white); }
+    .btn-warning { background: var(--warning); color: var(--white); }
+    .btn-danger { background: var(--danger); color: var(--white); }
+    .btn-info { background: var(--info); color: var(--white); }
+
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+    .btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    /* Modal */
+    .badge-primary { background: var(--primary); color: var(--white); }
+    .badge-success { background: var(--success); color: var(--white); }
+    .badge-warning { background: var(--warning); color: var(--white); }
+    .badge-danger { background: var(--danger); color: var(--white); }
+
+    /* Modals */
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
+      padding: 2rem;
     }
 
     .modal.active {
@@ -513,1134 +538,854 @@
 
     .modal-content {
       background: var(--light-card);
-      padding: 2rem;
-      border-radius: var(--radius);
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     body.dark .modal-content {
       background: var(--dark-card);
     }
 
-    .modal-actions {
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--light-border);
+      display: flex;
+      justify-content: between;
+      align-items: center;
+    }
+
+    body.dark .modal-header {
+      border-bottom-color: var(--dark-border);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--light-border);
       display: flex;
       justify-content: flex-end;
       gap: 1rem;
-      margin-top: 1.5rem;
     }
 
-    /* Footer */
-    footer {
-      background-color: var(--wine-dark);
-      color: var(--white);
-      text-align: center;
-      padding: 1.5rem 0;
-      margin-top: 2rem;
+    body.dark .modal-footer {
+      border-top-color: var(--dark-border);
     }
 
-    /* Responsive design */
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 3000;
+    }
+
+    .toast {
+      background: var(--light-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 300px;
+      transform: translateX(400px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    body.dark .toast {
+      background: var(--dark-card);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.warning { border-left: 4px solid var(--warning); }
+    .toast.info { border-left: 4px solid var(--info); }
+
+    /* Loading States */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--white);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.active {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .main-content.expanded {
+        margin-left: 0;
+      }
+    }
+
     @media (max-width: 768px) {
-      .header-content {
+      .auth-card {
+        padding: 2rem;
+      }
+      
+      .main-content {
+        padding: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .page-header {
         flex-direction: column;
         gap: 1rem;
-      }
-      
-      .nav-links {
-        flex-direction: column;
-        width: 100%;
-      }
-      
-      .nav-link {
-        text-align: center;
-        border-bottom: 1px solid var(--light-border);
-        border-left: 3px solid transparent;
-      }
-      
-      body.dark .nav-link {
-        border-bottom: 1px solid var(--dark-border);
-      }
-      
-      .nav-link.active, .nav-link:hover {
-        border-left-color: var(--wine);
-        border-bottom-color: var(--light-border);
-      }
-      
-      .stats-container {
-        grid-template-columns: 1fr;
-      }
-      
-      .student-info {
-        grid-template-columns: 1fr;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="container header-content">
-      <div class="logo">
-        <i class="fas fa-graduation-cap"></i>
-        <h1>Alkhulafau SHS Student Management</h1>
+  <!-- Authentication Section -->
+  <div id="authSection" class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <i class="fas fa-graduation-cap"></i>
+          <h1>Alkhulafau SHS</h1>
+        </div>
+        <p>Student Management System</p>
       </div>
-      <div class="header-actions">
-        <button id="installBtn" style="display:none;" class="btn-primary">
-          <i class="fas fa-download"></i> Install App
-        </button>
-        <button id="themeToggle" class="theme-toggle">
-          <i class="fas fa-moon"></i>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <nav>
-    <div class="container nav-container">
-      <ul class="nav-links">
-        <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="#" class="nav-link" data-page="upload"><i class="fas fa-upload"></i> Upload</a></li>
-        <li><a href="#" class="nav-link" data-page="search"><i class="fas fa-search"></i> Search</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <main class="container">
-    <!-- Dashboard Page -->
-    <div class="page active" id="dashboard">
-      <div class="card">
-        <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+        </div>
         
-        <div class="stats-container">
-          <div class="stat-card">
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="role">Login As</label>
+          <select id="role" class="form-control" required>
+            <option value="">Select Role</option>
+            <option value="admin">Administrator</option>
+            <option value="teacher">Teacher</option>
+            <option value="staff">Staff</option>
+            <option value="parent">Parent</option>
+            <option value="student">Student</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+      
+      <div style="text-align: center; margin-top: 2rem;">
+        <p>Demo Accounts:</p>
+        <p style="font-size: 0.875rem; color: #666;">
+          Admin: admin/admin123 | Teacher: teacher/teacher123
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application -->
+  <div id="appSection" class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="container header-content">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <h1>Alkhulafau SHS</h1>
+        </div>
+        
+        <div class="user-menu">
+          <button id="themeToggle" class="btn btn-secondary">
+            <i class="fas fa-moon"></i>
+          </button>
+          
+          <div class="user-avatar" id="userAvatar">
+            A
+          </div>
+          
+          <div class="user-info">
+            <div id="userName">Administrator</div>
+            <div id="userRole" style="font-size: 0.875rem; opacity: 0.8;">Admin</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="nav-section">
+        <div class="nav-title">Main</div>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link active" data-page="dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a></li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Student Management</div>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link" data-page="students">
             <i class="fas fa-users"></i>
-            <div class="stat-value" id="total-students">0</div>
+            <span>Students</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="attendance">
+            <i class="fas fa-calendar-check"></i>
+            <span>Attendance</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="behavior">
+            <i class="fas fa-chart-line"></i>
+            <span>Behavior Tracking</span>
+          </a></li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Academic</div>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link" data-page="grades">
+            <i class="fas fa-book"></i>
+            <span>Gradebook</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="timetable">
+            <i class="fas fa-clock"></i>
+            <span>Timetable</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="subjects">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Subjects</span>
+          </a></li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Finance</div>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link" data-page="fees">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Fee Management</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="payments">
+            <i class="fas fa-credit-card"></i>
+            <span>Payments</span>
+          </a></li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">System</div>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link" data-page="users">
+            <i class="fas fa-user-cog"></i>
+            <span>User Management</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="reports">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Dashboard Page -->
+      <div class="page active" id="dashboard">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard Overview</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary">
+              <i class="fas fa-plus"></i> Quick Action
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="totalStudents">0</div>
             <div class="stat-label">Total Students</div>
           </div>
-          <div class="stat-card">
-            <i class="fas fa-calendar-alt"></i>
-            <div class="stat-value" id="current-year">2025</div>
-            <div class="stat-label">Current Year</div>
+          
+          <div class="stat-card secondary">
+            <div class="stat-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-value" id="totalTeachers">0</div>
+            <div class="stat-label">Teaching Staff</div>
           </div>
-          <div class="stat-card">
-            <i class="fas fa-clock"></i>
-            <div class="stat-value" id="last-updated">Never</div>
-            <div class="stat-label">Last Updated</div>
+          
+          <div class="stat-card accent">
+            <div class="stat-icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-value" id="attendanceRate">0%</div>
+            <div class="stat-label">Attendance Rate</div>
+          </div>
+          
+          <div class="stat-card" style="background: linear-gradient(135deg, var(--info), #2980b9);">
+            <div class="stat-icon">
+              <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-value" id="feeCollection">₵0</div>
+            <div class="stat-label">Fee Collection</div>
           </div>
         </div>
-        
-        <div class="chart-container">
-          <h3>Student Distribution</h3>
-          <canvas id="chartStudents" height="150"></canvas>
+
+        <!-- Charts and Recent Activity -->
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Student Distribution</h2>
+            </div>
+            <canvas id="studentsChart" height="250"></canvas>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Recent Activity</h2>
+            </div>
+            <div id="recentActivity">
+              <!-- Activity items will be populated here -->
+            </div>
+          </div>
         </div>
-        
-        <div class="actions">
-          <button id="backupBtn" class="btn-primary">
-            <i class="fas fa-download"></i> Backup Data
-          </button>
-          <button id="restoreBtn" class="btn-secondary">
-            <i class="fas fa-upload"></i> Restore Backup
-          </button>
-          <button id="refreshBtn" class="btn-info">
-            <i class="fas fa-sync-alt"></i> Refresh Data
-          </button>
+
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Quick Actions</h2>
+          </div>
+          <div class="grid grid-4">
+            <button class="btn btn-primary" data-page="students">
+              <i class="fas fa-user-plus"></i> Add Student
+            </button>
+            <button class="btn btn-success" data-page="attendance">
+              <i class="fas fa-calendar-plus"></i> Mark Attendance
+            </button>
+            <button class="btn btn-info" data-page="grades">
+              <i class="fas fa-edit"></i> Enter Grades
+            </button>
+            <button class="btn btn-warning" data-page="fees">
+              <i class="fas fa-receipt"></i> Generate Invoice
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Upload Page -->
-    <div id="upload" class="page">
-      <div class="card">
-        <h2><i class="fas fa-upload"></i> Upload Student Placement List</h2>
-        <p>Upload an Excel file containing student placement information. All columns will be preserved and displayed as-is.</p>
-        
-        <div class="file-upload" id="file-upload-area">
-          <i class="fas fa-file-excel"></i>
-          <p>Drag & drop an Excel file here or click to browse</p>
-          <p class="small">Supported formats: .xlsx, .xls, .csv</p>
-          <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" style="display: none;">
-        </div>
-        
-        <div id="upload-preview" class="upload-preview" style="display: none;">
-          <h3><i class="fas fa-eye"></i> Upload Preview</h3>
-          <div id="preview-info" class="preview-info" style="margin-bottom: 1rem; padding: 0.5rem; background-color: rgba(114, 47, 55, 0.05); border-radius: var(--radius);">
-            <p><strong>Total Records:</strong> <span id="total-records">0</span></p>
-            <p><strong>Preview Rows:</strong> <span id="preview-rows">0</span></p>
-          </div>
-          <div id="preview-table-container" style="overflow-x: auto;"></div>
-          <div class="actions">
-            <button id="confirm-upload" class="btn-success">
-              <i class="fas fa-check"></i> Confirm Upload
-            </button>
-            <button id="cancel-upload" class="btn-secondary">
-              <i class="fas fa-times"></i> Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search Page -->
-    <div id="search" class="page">
-      <div class="card">
-        <h2><i class="fas fa-search"></i> Search Students</h2>
-        
-        <div class="search-container">
-          <input type="text" id="search-input" class="search-input" placeholder="Enter student name, index number, or any field...">
-          <button id="search-btn" class="btn-primary">
-            <i class="fas fa-search"></i> Search
-          </button>
-          <button id="clear-search" class="btn-secondary">
-            <i class="fas fa-eraser"></i> Clear
-          </button>
-        </div>
-        
-        <div class="filter-container">
-          <select id="filter-class" class="filter-select">
-            <option value="">All Classes</option>
-          </select>
-          <select id="filter-year" class="filter-select">
-            <option value="">All Years</option>
-          </select>
-          <select id="filter-program" class="filter-select">
-            <option value="">All Programs</option>
-          </select>
-        </div>
-        
-        <div id="search-results">
-          <div style="overflow-x: auto;">
-            <table id="students-table">
-              <thead>
-                <tr id="students-table-header">
-                  <!-- Table headers will be populated dynamically -->
-                </tr>
-              </thead>
-              <tbody id="students-tbody">
-                <!-- Students will be populated here -->
-              </tbody>
-            </table>
-          </div>
-          <div id="pagination-controls" class="actions" style="justify-content: center;"></div>
-        </div>
-        
-        <div class="actions">
-          <button id="export-excel" class="btn-success">
-            <i class="fas fa-file-excel"></i> Export to Excel
-          </button>
-          <button id="export-pdf" class="btn-danger">
-            <i class="fas fa-file-pdf"></i> Print to PDF
-          </button>
-          <button id="clear-data" class="btn-warning">
-            <i class="fas fa-trash"></i> Clear All Data
-          </button>
-        </div>
+      <!-- Other pages will be implemented similarly -->
+      <div class="page" id="students">
+        <!-- Students management page content -->
       </div>
       
-      <div id="student-details" class="student-details card">
-        <h2><i class="fas fa-user-graduate"></i> Student Details</h2>
-        <div id="student-info" class="student-info">
-          <!-- Student details will be populated here -->
-        </div>
-        <div class="actions">
-          <button id="print-student" class="btn-primary">
-            <i class="fas fa-print"></i> Print Student Details
-          </button>
-          <button id="back-to-search" class="btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Search
-          </button>
-        </div>
+      <div class="page" id="attendance">
+        <!-- Attendance management page content -->
       </div>
-    </div>
-  </main>
-
-  <!-- Toast Notification -->
-  <div class="toast" id="toast">
-    <i class="fas fa-info-circle"></i>
-    <span id="toast-message">This is a toast message</span>
+      
+      <!-- Add other pages here -->
+    </main>
   </div>
 
-  <!-- Modal for Confirmations -->
-  <div class="modal" id="modal">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modals -->
+  <div class="modal" id="userProfileModal">
     <div class="modal-content">
-      <h3 id="modal-title">Confirm Action</h3>
-      <p id="modal-message">Are you sure you want to proceed?</p>
-      <div class="modal-actions">
-        <button id="modal-confirm" class="btn-primary">Yes</button>
-        <button id="modal-cancel" class="btn-secondary">Cancel</button>
+      <div class="modal-header">
+        <h3>User Profile</h3>
+        <button class="btn btn-secondary" onclick="hideModal('userProfileModal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- User profile form -->
       </div>
     </div>
   </div>
-
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Alkhulafau SHS. All Rights Reserved.</p>
-    </div>
-  </footer>
-
-  <!-- External Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <script>
-    // Application state
-    const state = {
-      students: [],
-      currentStudent: null,
-      tableHeaders: [],
-      filteredStudents: [],
-      currentPage: 1,
-      itemsPerPage: 20,
-      filters: {
-        class: '',
-        year: '',
-        program: ''
+    // Application State Management
+    const AppState = {
+      currentUser: null,
+      userRole: null,
+      currentPage: 'dashboard',
+      theme: localStorage.getItem('theme') || 'light',
+      students: JSON.parse(localStorage.getItem('students')) || [],
+      teachers: JSON.parse(localStorage.getItem('teachers')) || [],
+      attendance: JSON.parse(localStorage.getItem('attendance')) || [],
+      grades: JSON.parse(localStorage.getItem('grades')) || []
+    };
+
+    // DOM Elements
+    const DOM = {
+      authSection: document.getElementById('authSection'),
+      appSection: document.getElementById('appSection'),
+      loginForm: document.getElementById('loginForm'),
+      sidebar: document.getElementById('sidebar'),
+      mainContent: document.getElementById('mainContent'),
+      themeToggle: document.getElementById('themeToggle'),
+      userAvatar: document.getElementById('userAvatar'),
+      userName: document.getElementById('userName'),
+      userRole: document.getElementById('userRole'),
+      toastContainer: document.getElementById('toastContainer')
+    };
+
+    // Utility Functions
+    const Utils = {
+      // Show toast notification
+      showToast(message, type = 'info', duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+          <i class="fas fa-${this.getToastIcon(type)}"></i>
+          <span>${message}</span>
+        `;
+        
+        DOM.toastContainer.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
       },
-      previewRows: 50 // Increased from 10 to 50
-    };
 
-    // DOM elements
-    const elements = {
-      // Pages
-      pages: document.querySelectorAll('.page'),
-      navLinks: document.querySelectorAll('.nav-link'),
-      
-      // Dashboard
-      totalStudents: document.getElementById('total-students'),
-      currentYear: document.getElementById('current-year'),
-      lastUpdated: document.getElementById('last-updated'),
-      
-      // Upload
-      fileUploadArea: document.getElementById('file-upload-area'),
-      excelFileInput: document.getElementById('excel-file'),
-      uploadPreview: document.getElementById('upload-preview'),
-      previewTableContainer: document.getElementById('preview-table-container'),
-      totalRecords: document.getElementById('total-records'),
-      previewRows: document.getElementById('preview-rows'),
-      confirmUpload: document.getElementById('confirm-upload'),
-      cancelUpload: document.getElementById('cancel-upload'),
-      
-      // Search
-      searchInput: document.getElementById('search-input'),
-      searchBtn: document.getElementById('search-btn'),
-      clearSearch: document.getElementById('clear-search'),
-      studentsTableHeader: document.getElementById('students-table-header'),
-      studentsTbody: document.getElementById('students-tbody'),
-      studentDetails: document.getElementById('student-details'),
-      studentInfo: document.getElementById('student-info'),
-      backToSearch: document.getElementById('back-to-search'),
-      printStudent: document.getElementById('print-student'),
-      exportExcel: document.getElementById('export-excel'),
-      exportPdf: document.getElementById('export-pdf'),
-      clearData: document.getElementById('clear-data'),
-      paginationControls: document.getElementById('pagination-controls'),
-      
-      // Filters
-      filterClass: document.getElementById('filter-class'),
-      filterYear: document.getElementById('filter-year'),
-      filterProgram: document.getElementById('filter-program'),
-      
-      // Toast and Modal
-      toast: document.getElementById('toast'),
-      toastMessage: document.getElementById('toast-message'),
-      modal: document.getElementById('modal'),
-      modalTitle: document.getElementById('modal-title'),
-      modalMessage: document.getElementById('modal-message'),
-      modalConfirm: document.getElementById('modal-confirm'),
-      modalCancel: document.getElementById('modal-cancel'),
-      
-      // Buttons
-      backupBtn: document.getElementById('backupBtn'),
-      restoreBtn: document.getElementById('restoreBtn'),
-      refreshBtn: document.getElementById('refreshBtn'),
-      installBtn: document.getElementById('installBtn'),
-      themeToggle: document.getElementById('themeToggle')
-    };
-
-    // Initialize the application
-    function init() {
-      loadStudents();
-      setupEventListeners();
-      updateDashboard();
-      updateFilterOptions();
-      
-      // Set current year
-      elements.currentYear.textContent = new Date().getFullYear();
-    }
-
-    // Load students from localStorage
-    function loadStudents() {
-      const stored = localStorage.getItem('alkhulafauStudents');
-      const headers = localStorage.getItem('alkhulafauHeaders');
-      const lastUpdated = localStorage.getItem('alkhulafauLastUpdated');
-      
-      if (stored) {
-        state.students = JSON.parse(stored);
-        state.filteredStudents = [...state.students];
-      }
-      
-      if (headers) {
-        state.tableHeaders = JSON.parse(headers);
-      }
-      
-      if (lastUpdated) {
-        elements.lastUpdated.textContent = new Date(parseInt(lastUpdated)).toLocaleString();
-      }
-    }
-
-    // Save students to localStorage
-    function saveStudents() {
-      localStorage.setItem('alkhulafauStudents', JSON.stringify(state.students));
-      localStorage.setItem('alkhulafauHeaders', JSON.stringify(state.tableHeaders));
-      localStorage.setItem('alkhulafauLastUpdated', Date.now().toString());
-    }
-
-    // Set up event listeners
-    function setupEventListeners() {
-      // Navigation
-      elements.navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          const pageId = link.getAttribute('data-page');
-          showPage(pageId);
-          
-          // Update active nav link
-          elements.navLinks.forEach(l => l.classList.remove('active'));
-          link.classList.add('active');
-        });
-      });
-
-      // File upload
-      elements.fileUploadArea.addEventListener('click', () => {
-        elements.excelFileInput.click();
-      });
-      
-      elements.excelFileInput.addEventListener('change', handleFileUpload);
-      
-      // Upload confirmation
-      elements.confirmUpload.addEventListener('click', confirmUpload);
-      elements.cancelUpload.addEventListener('click', cancelUpload);
-
-      // Search functionality
-      elements.searchBtn.addEventListener('click', handleSearch);
-      elements.clearSearch.addEventListener('click', clearSearch);
-      elements.searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-          handleSearch();
-        }
-      });
-
-      // Student details
-      elements.backToSearch.addEventListener('click', () => {
-        elements.studentDetails.classList.remove('active');
-      });
-      
-      elements.printStudent.addEventListener('click', printStudentDetails);
-
-      // Export functionality
-      elements.exportExcel.addEventListener('click', exportToExcel);
-      elements.exportPdf.addEventListener('click', exportToPdf);
-      
-      // Clear data
-      elements.clearData.addEventListener('click', () => {
-        showModal(
-          'Clear All Data',
-          'Are you sure you want to clear all student data? This action cannot be undone.',
-          clearAllData
-        );
-      });
-      
-      // Dashboard buttons
-      elements.backupBtn.addEventListener('click', backupData);
-      elements.restoreBtn.addEventListener('click', restoreData);
-      elements.refreshBtn.addEventListener('click', refreshData);
-      
-      // Filter changes
-      elements.filterClass.addEventListener('change', applyFilters);
-      elements.filterYear.addEventListener('change', applyFilters);
-      elements.filterProgram.addEventListener('change', applyFilters);
-      
-      // Modal
-      elements.modalCancel.addEventListener('click', hideModal);
-      
-      // Theme toggle
-      elements.themeToggle.addEventListener('click', toggleTheme);
-      
-      // Install button
-      elements.installBtn.addEventListener('click', installApp);
-    }
-
-    // Show specific page
-    function showPage(pageId) {
-      elements.pages.forEach(page => {
-        page.classList.remove('active');
-      });
-      document.getElementById(pageId).classList.add('active');
-      
-      if (pageId === 'search') {
-        displayAllStudents();
-      } else if (pageId === 'dashboard') {
-        updateDashboard();
-      } else if (pageId === 'upload') {
-        // Reset upload form
-        elements.uploadPreview.style.display = 'none';
-        elements.excelFileInput.value = '';
-      }
-    }
-
-    // Handle Excel file upload
-    function handleFileUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          
-          // Assuming first sheet
-          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          
-          if (jsonData.length > 0) {
-            // Extract headers
-            const firstRow = jsonData[0];
-            state.tableHeaders = Object.keys(firstRow);
-            
-            // Show preview with count information
-            showUploadPreview(jsonData);
-          } else {
-            showToast('The uploaded file appears to be empty', 'warning');
-          }
-        } catch (error) {
-          showToast('Error reading file: ' + error.message, 'error');
-        }
-      };
-      reader.onerror = function() {
-        showToast('Error reading file', 'error');
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    // Show upload preview with count information
-    function showUploadPreview(data) {
-      if (data.length === 0) return;
-      
-      // Update preview info
-      elements.totalRecords.textContent = data.length;
-      elements.previewRows.textContent = Math.min(state.previewRows, data.length);
-      
-      // Create preview table
-      let tableHTML = '<table><thead><tr>';
-      
-      // Add headers
-      state.tableHeaders.forEach(header => {
-        tableHTML += `<th>${header}</th>`;
-      });
-      
-      tableHTML += '</tr></thead><tbody>';
-      
-      // Add data rows - show up to previewRows (50) instead of just 10
-      const previewData = data.slice(0, state.previewRows);
-      previewData.forEach(row => {
-        tableHTML += '<tr>';
-        state.tableHeaders.forEach(header => {
-          tableHTML += `<td>${row[header] || ''}</td>`;
-        });
-        tableHTML += '</tr>';
-      });
-      
-      tableHTML += '</tbody></table>';
-      
-      elements.previewTableContainer.innerHTML = tableHTML;
-      elements.uploadPreview.style.display = 'block';
-      
-      // Store the full data for confirmation
-      elements.uploadPreview.dataset.fullData = JSON.stringify(data);
-    }
-
-    // Confirm upload and save data
-    function confirmUpload() {
-      try {
-        const fullData = JSON.parse(elements.uploadPreview.dataset.fullData);
-        
-        // Replace existing data with new upload
-        state.students = fullData;
-        state.filteredStudents = [...fullData];
-        saveStudents();
-        
-        // Reset upload form
-        elements.uploadPreview.style.display = 'none';
-        elements.excelFileInput.value = '';
-        
-        showToast(`Successfully uploaded ${fullData.length} student records`, 'success');
-        updateDashboard();
-        updateFilterOptions();
-        
-        // Switch to search page to view data
-        showPage('search');
-        const searchLink = document.querySelector('[data-page="search"]');
-        elements.navLinks.forEach(l => l.classList.remove('active'));
-        searchLink.classList.add('active');
-      } catch (error) {
-        showToast('Error processing upload: ' + error.message, 'error');
-      }
-    }
-
-    // Cancel upload
-    function cancelUpload() {
-      elements.uploadPreview.style.display = 'none';
-      elements.excelFileInput.value = '';
-    }
-
-    // Handle search
-    function handleSearch() {
-      const query = elements.searchInput.value.trim().toLowerCase();
-      
-      if (!query) {
-        displayAllStudents();
-        return;
-      }
-      
-      const results = state.students.filter(student => {
-        // Search across all fields
-        for (const key in student) {
-          if (student[key] && student[key].toString().toLowerCase().includes(query)) {
-            return true;
-          }
-        }
-        return false;
-      });
-      
-      state.filteredStudents = results;
-      state.currentPage = 1;
-      displaySearchResults();
-    }
-
-    // Clear search
-    function clearSearch() {
-      elements.searchInput.value = '';
-      state.filteredStudents = [...state.students];
-      state.currentPage = 1;
-      displaySearchResults();
-    }
-
-    // Apply filters
-    function applyFilters() {
-      state.filters.class = elements.filterClass.value;
-      state.filters.year = elements.filterYear.value;
-      state.filters.program = elements.filterProgram.value;
-      
-      let results = [...state.students];
-      
-      // Apply class filter
-      if (state.filters.class) {
-        results = results.filter(student => 
-          student.Class && student.Class.includes(state.filters.class)
-        );
-      }
-      
-      // Apply year filter
-      if (state.filters.year) {
-        results = results.filter(student => 
-          student.Year && student.Year.toString() === state.filters.year
-        );
-      }
-      
-      // Apply program filter
-      if (state.filters.program) {
-        results = results.filter(student => 
-          student.Program && student.Program.includes(state.filters.program)
-        );
-      }
-      
-      state.filteredStudents = results;
-      state.currentPage = 1;
-      displaySearchResults();
-    }
-
-    // Update filter options based on data
-    function updateFilterOptions() {
-      // Clear existing options (except the first one)
-      elements.filterClass.innerHTML = '<option value="">All Classes</option>';
-      elements.filterYear.innerHTML = '<option value="">All Years</option>';
-      elements.filterProgram.innerHTML = '<option value="">All Programs</option>';
-      
-      if (state.students.length === 0) return;
-      
-      const classes = new Set();
-      const years = new Set();
-      const programs = new Set();
-      
-      state.students.forEach(student => {
-        if (student.Class) classes.add(student.Class);
-        if (student.Year) years.add(student.Year.toString());
-        if (student.Program) programs.add(student.Program);
-      });
-      
-      // Add class options
-      classes.forEach(cls => {
-        const option = document.createElement('option');
-        option.value = cls;
-        option.textContent = cls;
-        elements.filterClass.appendChild(option);
-      });
-      
-      // Add year options
-      years.forEach(year => {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        elements.filterYear.appendChild(option);
-      });
-      
-      // Add program options
-      programs.forEach(program => {
-        const option = document.createElement('option');
-        option.value = program;
-        option.textContent = program;
-        elements.filterProgram.appendChild(option);
-      });
-    }
-
-    // Display all students in table
-    function displayAllStudents() {
-      state.filteredStudents = [...state.students];
-      state.currentPage = 1;
-      displaySearchResults();
-    }
-
-    // Display search results in table
-    function displaySearchResults() {
-      // Clear previous results
-      elements.studentsTbody.innerHTML = '';
-      elements.studentsTableHeader.innerHTML = '';
-      
-      if (state.filteredStudents.length === 0) {
-        elements.studentsTbody.innerHTML = '<tr><td colspan="' + (state.tableHeaders.length + 1) + '" style="text-align: center;">No students found</td></tr>';
-        elements.paginationControls.innerHTML = '';
-        return;
-      }
-      
-      // Create table headers
-      state.tableHeaders.forEach(header => {
-        const th = document.createElement('th');
-        th.textContent = header;
-        elements.studentsTableHeader.appendChild(th);
-      });
-      
-      // Add actions header
-      const actionsTh = document.createElement('th');
-      actionsTh.textContent = 'Actions';
-      elements.studentsTableHeader.appendChild(actionsTh);
-      
-      // Calculate pagination
-      const totalPages = Math.ceil(state.filteredStudents.length / state.itemsPerPage);
-      const startIndex = (state.currentPage - 1) * state.itemsPerPage;
-      const endIndex = Math.min(startIndex + state.itemsPerPage, state.filteredStudents.length);
-      const pageStudents = state.filteredStudents.slice(startIndex, endIndex);
-      
-      // Create table rows
-      pageStudents.forEach((student, index) => {
-        const row = document.createElement('tr');
-        
-        // Add data cells
-        state.tableHeaders.forEach(header => {
-          const td = document.createElement('td');
-          td.textContent = student[header] || 'N/A';
-          row.appendChild(td);
-        });
-        
-        // Add actions cell
-        const actionsTd = document.createElement('td');
-        const viewButton = document.createElement('button');
-        viewButton.textContent = 'View';
-        viewButton.className = 'btn-primary';
-        viewButton.style.padding = '0.3rem 0.6rem';
-        viewButton.dataset.index = startIndex + index;
-        actionsTd.appendChild(viewButton);
-        row.appendChild(actionsTd);
-        
-        elements.studentsTbody.appendChild(row);
-      });
-      
-      // Add event listeners to view buttons
-      document.querySelectorAll('.btn-primary[data-index]').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const studentIndex = parseInt(e.target.getAttribute('data-index'));
-          viewStudentDetails(studentIndex);
-        });
-      });
-      
-      // Create pagination controls
-      createPaginationControls(totalPages);
-    }
-
-    // Create pagination controls
-    function createPaginationControls(totalPages) {
-      if (totalPages <= 1) {
-        elements.paginationControls.innerHTML = '';
-        return;
-      }
-      
-      let paginationHTML = '';
-      
-      // Previous button
-      if (state.currentPage > 1) {
-        paginationHTML += `<button class="btn-secondary" id="prev-page"><i class="fas fa-chevron-left"></i> Previous</button>`;
-      }
-      
-      // Page numbers
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === state.currentPage) {
-          paginationHTML += `<button class="btn-primary">${i}</button>`;
-        } else if (
-          i === 1 || 
-          i === totalPages || 
-          (i >= state.currentPage - 1 && i <= state.currentPage + 1)
-        ) {
-          paginationHTML += `<button class="btn-secondary page-number" data-page="${i}">${i}</button>`;
-        } else if (i === state.currentPage - 2 || i === state.currentPage + 2) {
-          paginationHTML += `<span>...</span>`;
-        }
-      }
-      
-      // Next button
-      if (state.currentPage < totalPages) {
-        paginationHTML += `<button class="btn-secondary" id="next-page">Next <i class="fas fa-chevron-right"></i></button>`;
-      }
-      
-      elements.paginationControls.innerHTML = paginationHTML;
-      
-      // Add event listeners
-      document.querySelectorAll('.page-number').forEach(button => {
-        button.addEventListener('click', (e) => {
-          state.currentPage = parseInt(e.target.getAttribute('data-page'));
-          displaySearchResults();
-        });
-      });
-      
-      const prevButton = document.getElementById('prev-page');
-      if (prevButton) {
-        prevButton.addEventListener('click', () => {
-          state.currentPage--;
-          displaySearchResults();
-        });
-      }
-      
-      const nextButton = document.getElementById('next-page');
-      if (nextButton) {
-        nextButton.addEventListener('click', () => {
-          state.currentPage++;
-          displaySearchResults();
-        });
-      }
-    }
-
-    // View student details
-    function viewStudentDetails(studentIndex) {
-      const student = state.filteredStudents[studentIndex];
-      
-      if (!student) {
-        showToast('Student not found', 'error');
-        return;
-      }
-      
-      state.currentStudent = student;
-      
-      // Populate student details
-      elements.studentInfo.innerHTML = '';
-      
-      state.tableHeaders.forEach(header => {
-        const infoItem = document.createElement('div');
-        infoItem.className = 'info-item';
-        
-        const infoLabel = document.createElement('div');
-        infoLabel.className = 'info-label';
-        infoLabel.textContent = header;
-        
-        const infoValue = document.createElement('div');
-        infoValue.textContent = student[header] || 'N/A';
-        
-        infoItem.appendChild(infoLabel);
-        infoItem.appendChild(infoValue);
-        
-        elements.studentInfo.appendChild(infoItem);
-      });
-      
-      elements.studentDetails.classList.add('active');
-    }
-
-    // Print student details
-    function printStudentDetails() {
-      if (!state.currentStudent) return;
-      
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      // Add title
-      doc.setFontSize(18);
-      doc.text('Alkhulafau SHS - Student Details', 20, 20);
-      
-      // Add student information
-      doc.setFontSize(12);
-      let yPosition = 40;
-      
-      const student = state.currentStudent;
-      
-      state.tableHeaders.forEach(header => {
-        if (student[header]) {
-          doc.text(`${header}: ${student[header]}`, 20, yPosition);
-          yPosition += 10;
-          
-          // Add new page if needed
-          if (yPosition > 270) {
-            doc.addPage();
-            yPosition = 20;
-          }
-        }
-      });
-      
-      // Save the PDF
-      doc.save(`student_${student.indexNumber || 'details'}.pdf`);
-      showToast('Student details exported to PDF', 'success');
-    }
-
-    // Export to Excel
-    function exportToExcel() {
-      if (state.students.length === 0) {
-        showToast('No students to export', 'warning');
-        return;
-      }
-      
-      const worksheet = XLSX.utils.json_to_sheet(state.students);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-      
-      // Generate and download the file
-      XLSX.writeFile(workbook, 'alkhulafau_students.xlsx');
-      showToast('Students exported to Excel successfully', 'success');
-    }
-
-    // Export to PDF
-    function exportToPdf() {
-      if (state.students.length === 0) {
-        showToast('No students to export', 'warning');
-        return;
-      }
-      
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      // Add title
-      doc.setFontSize(18);
-      doc.text('Alkhulafau SHS - Student List', 20, 20);
-      
-      // Create table
-      const tableColumn = state.tableHeaders;
-      const tableRows = [];
-      
-      state.students.forEach(student => {
-        const rowData = [];
-        state.tableHeaders.forEach(header => {
-          rowData.push(student[header] || 'N/A');
-        });
-        tableRows.push(rowData);
-      });
-      
-      doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 30,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [114, 47, 55] } // Wine color
-      });
-      
-      // Save the PDF
-      doc.save('alkhulafau_students.pdf');
-      showToast('Students exported to PDF successfully', 'success');
-    }
-
-    // Clear all data
-    function clearAllData() {
-      state.students = [];
-      state.filteredStudents = [];
-      state.tableHeaders = [];
-      localStorage.removeItem('alkhulafauStudents');
-      localStorage.removeItem('alkhulafauHeaders');
-      localStorage.removeItem('alkhulafauLastUpdated');
-      
-      showToast('All student data has been cleared', 'success');
-      updateDashboard();
-      updateFilterOptions();
-      displayAllStudents();
-      hideModal();
-    }
-
-    // Backup data
-    function backupData() {
-      const data = {
-        students: JSON.parse(localStorage.getItem('alkhulafauStudents') || '[]'),
-        headers: JSON.parse(localStorage.getItem('alkhulafauHeaders') || '[]'),
-      };
-      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'alkhulafau_backup.json';
-      a.click();
-      showToast('Backup downloaded successfully', 'success');
-    }
-
-    // Restore data
-    function restoreData() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target.result);
-            localStorage.setItem('alkhulafauStudents', JSON.stringify(data.students));
-            localStorage.setItem('alkhulafauHeaders', JSON.stringify(data.headers));
-            localStorage.setItem('alkhulafauLastUpdated', Date.now().toString());
-            
-            // Reload data
-            loadStudents();
-            updateDashboard();
-            updateFilterOptions();
-            
-            showToast('Backup restored successfully!', 'success');
-          } catch {
-            showToast('Invalid backup file!', 'error');
-          }
+      getToastIcon(type) {
+        const icons = {
+          success: 'check-circle',
+          error: 'exclamation-circle',
+          warning: 'exclamation-triangle',
+          info: 'info-circle'
         };
-        reader.readAsText(file);
-      };
-      input.click();
-    }
+        return icons[type] || 'info-circle';
+      },
 
-    // Refresh data
-    function refreshData() {
-      loadStudents();
-      updateDashboard();
-      updateFilterOptions();
-      showToast('Data refreshed successfully', 'success');
-    }
+      // Format currency
+      formatCurrency(amount) {
+        return new Intl.NumberFormat('en-GH', {
+          style: 'currency',
+          currency: 'GHS'
+        }).format(amount);
+      },
 
-    // Update dashboard
-    function updateDashboard() {
-      elements.totalStudents.textContent = state.students.length;
-      elements.lastUpdated.textContent = state.students.length > 0 ? 
-        new Date(parseInt(localStorage.getItem('alkhulafauLastUpdated'))).toLocaleString() : 'Never';
-      
-      // Update chart if it exists
-      updateChart();
-    }
+      // Format date
+      formatDate(date) {
+        return new Date(date).toLocaleDateString('en-GH');
+      },
 
-    // Update chart
-    function updateChart() {
-      const ctx = document.getElementById('chartStudents');
-      if (!ctx) return;
-      
-      // Sample data - in a real app, you would aggregate data from students
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['2021', '2022', '2023', '2024'],
-          datasets: [{
-            label: 'Total Students',
-            data: [120, 140, 160, state.students.length || 180],
-            backgroundColor: '#722f37'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: true,
-              text: 'Student Enrollment by Year'
+      // Generate unique ID
+      generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+      },
+
+      // Validate email
+      validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+    };
+
+    // Authentication Management
+    const Auth = {
+      // Demo user database
+      users: {
+        admin: { password: 'admin123', role: 'admin', name: 'System Administrator' },
+        teacher: { password: 'teacher123', role: 'teacher', name: 'John Teacher' },
+        staff: { password: 'staff123', role: 'staff', name: 'Jane Staff' },
+        parent: { password: 'parent123', role: 'parent', name: 'Parent User' },
+        student: { password: 'student123', role: 'student', name: 'Student User' }
+      },
+
+      login(username, password, role) {
+        const user = this.users[username];
+        
+        if (user && user.password === password && user.role === role) {
+          AppState.currentUser = username;
+          AppState.userRole = role;
+          
+          // Store user session
+          localStorage.setItem('currentUser', username);
+          localStorage.setItem('userRole', role);
+          
+          this.initializeUserSession(user);
+          Utils.showToast(`Welcome back, ${user.name}!`, 'success');
+          return true;
+        }
+        
+        Utils.showToast('Invalid login credentials', 'error');
+        return false;
+      },
+
+      initializeUserSession(user) {
+        DOM.userName.textContent = user.name;
+        DOM.userRole.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        DOM.userAvatar.textContent = user.name.charAt(0).toUpperCase();
+        
+        // Show/hide features based on role
+        this.setupRoleBasedAccess(user.role);
+        
+        // Switch to app view
+        DOM.authSection.style.display = 'none';
+        DOM.appSection.classList.add('active');
+      },
+
+      setupRoleBasedAccess(role) {
+        const adminOnly = document.querySelectorAll('[data-role="admin"]');
+        const teacherOnly = document.querySelectorAll('[data-role="teacher"]');
+        
+        // Hide all restricted elements first
+        adminOnly.forEach(el => el.style.display = 'none');
+        teacherOnly.forEach(el => el.style.display = 'none');
+        
+        // Show elements based on role
+        if (role === 'admin') {
+          adminOnly.forEach(el => el.style.display = 'block');
+        }
+        if (role === 'teacher' || role === 'admin') {
+          teacherOnly.forEach(el => el.style.display = 'block');
+        }
+      },
+
+      logout() {
+        AppState.currentUser = null;
+        AppState.userRole = null;
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('userRole');
+        
+        DOM.appSection.classList.remove('active');
+        DOM.authSection.style.display = 'flex';
+        DOM.loginForm.reset();
+        
+        Utils.showToast('You have been logged out', 'info');
+      }
+    };
+
+    // Theme Management
+    const Theme = {
+      init() {
+        if (AppState.theme === 'dark') {
+          document.body.classList.add('dark');
+          DOM.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        DOM.themeToggle.addEventListener('click', this.toggle);
+      },
+
+      toggle() {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        
+        AppState.theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('theme', AppState.theme);
+        
+        DOM.themeToggle.innerHTML = isDark ? 
+          '<i class="fas fa-sun"></i>' : 
+          '<i class="fas fa-moon"></i>';
+      }
+    };
+
+    // Navigation Management
+    const Navigation = {
+      init() {
+        // Page navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.getAttribute('data-page');
+            this.navigateTo(page);
+            
+            // Update active states
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+          });
+        });
+
+        // Quick action buttons
+        document.querySelectorAll('[data-page]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const page = btn.getAttribute('data-page');
+            this.navigateTo(page);
+          });
+        });
+      },
+
+      navigateTo(page) {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        
+        // Show target page
+        const targetPage = document.getElementById(page);
+        if (targetPage) {
+          targetPage.classList.add('active');
+          AppState.currentPage = page;
+          
+          // Update page title
+          const pageTitle = targetPage.querySelector('.page-title');
+          if (pageTitle) {
+            document.title = `${pageTitle.textContent} - Alkhulafau SHS`;
+          }
+        }
+      }
+    };
+
+    // Dashboard Management
+    const Dashboard = {
+      init() {
+        this.updateStats();
+        this.renderCharts();
+        this.loadRecentActivity();
+      },
+
+      updateStats() {
+        // Update student count
+        document.getElementById('totalStudents').textContent = AppState.students.length;
+        
+        // Update teacher count
+        document.getElementById('totalTeachers').textContent = AppState.teachers.length;
+        
+        // Calculate attendance rate
+        const totalAttendance = AppState.attendance.reduce((sum, record) => 
+          sum + (record.present ? 1 : 0), 0);
+        const attendanceRate = AppState.attendance.length > 0 ? 
+          Math.round((totalAttendance / AppState.attendance.length) * 100) : 0;
+        document.getElementById('attendanceRate').textContent = `${attendanceRate}%`;
+        
+        // Calculate fee collection (placeholder)
+        document.getElementById('feeCollection').textContent = Utils.formatCurrency(0);
+      },
+
+      renderCharts() {
+        const ctx = document.getElementById('studentsChart');
+        if (!ctx) return;
+
+        // Sample data - replace with actual data
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Form 1', 'Form 2', 'Form 3'],
+            datasets: [{
+              label: 'Students per Class',
+              data: [45, 52, 48],
+              backgroundColor: '#722f37'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top',
+              }
             }
           }
+        });
+      },
+
+      loadRecentActivity() {
+        const container = document.getElementById('recentActivity');
+        if (!container) return;
+
+        // Sample activities - replace with actual data
+        const activities = [
+          { type: 'student', message: 'New student registered', time: '2 hours ago' },
+          { type: 'attendance', message: 'Attendance marked for Form 1', time: '4 hours ago' },
+          { type: 'payment', message: 'Fee payment received', time: '1 day ago' },
+          { type: 'grade', message: 'Exam results uploaded', time: '2 days ago' }
+        ];
+
+        container.innerHTML = activities.map(activity => `
+          <div style="padding: 1rem; border-bottom: 1px solid var(--light-border);">
+            <div style="display: flex; justify-content: between; align-items: center;">
+              <span>${activity.message}</span>
+              <small style="color: #666;">${activity.time}</small>
+            </div>
+          </div>
+        `).join('');
+      }
+    };
+
+    // Data Management
+    const DataManager = {
+      // Student operations
+      students: {
+        add(student) {
+          student.id = Utils.generateId();
+          student.createdAt = new Date().toISOString();
+          AppState.students.push(student);
+          this.save();
+          Utils.showToast('Student added successfully', 'success');
+        },
+
+        update(id, updates) {
+          const index = AppState.students.findIndex(s => s.id === id);
+          if (index !== -1) {
+            AppState.students[index] = { ...AppState.students[index], ...updates };
+            this.save();
+            Utils.showToast('Student updated successfully', 'success');
+          }
+        },
+
+        delete(id) {
+          AppState.students = AppState.students.filter(s => s.id !== id);
+          this.save();
+          Utils.showToast('Student deleted successfully', 'success');
+        },
+
+        save() {
+          localStorage.setItem('students', JSON.stringify(AppState.students));
         }
+      },
+
+      // Initialize sample data
+      initSampleData() {
+        if (AppState.students.length === 0) {
+          const sampleStudents = [
+            {
+              id: '1',
+              studentId: 'SHS001',
+              firstName: 'Kwame',
+              lastName: 'Ampofo',
+              gender: 'Male',
+              class: 'Form 1A',
+              dateOfBirth: '2008-05-15',
+              parentPhone: '+233201234567',
+              status: 'active'
+            },
+            {
+              id: '2', 
+              studentId: 'SHS002',
+              firstName: 'Ama',
+              lastName: 'Mensah',
+              gender: 'Female',
+              class: 'Form 2B',
+              dateOfBirth: '2007-08-22',
+              parentPhone: '+233241234567',
+              status: 'active'
+            }
+          ];
+          
+          AppState.students = sampleStudents;
+          this.students.save();
+        }
+      }
+    };
+
+    // Application Initialization
+    function initApp() {
+      // Initialize theme
+      Theme.init();
+      
+      // Initialize navigation
+      Navigation.init();
+      
+      // Check for existing session
+      const savedUser = localStorage.getItem('currentUser');
+      const savedRole = localStorage.getItem('userRole');
+      
+      if (savedUser && savedRole) {
+        Auth.login(savedUser, Auth.users[savedUser].password, savedRole);
+      }
+      
+      // Initialize sample data
+      DataManager.initSampleData();
+      
+      // Initialize dashboard
+      Dashboard.init();
+      
+      // Setup login form
+      DOM.loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+        
+        Auth.login(username, password, role);
+      });
+      
+      // Setup user avatar click
+      DOM.userAvatar.addEventListener('click', () => {
+        // Show user profile modal or logout option
+        Utils.showToast('User profile clicked', 'info');
       });
     }
 
-    // Show toast notification
-    function showToast(message, type = 'info') {
-      elements.toastMessage.textContent = message;
-      elements.toast.className = 'toast ' + type;
-      elements.toast.classList.add('show');
-      
-      setTimeout(() => {
-        elements.toast.classList.remove('show');
-      }, 3000);
-    }
+    // Start the application when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
 
-    // Show modal
-    function showModal(title, message, confirmCallback) {
-      elements.modalTitle.textContent = title;
-      elements.modalMessage.textContent = message;
-      elements.modal.classList.add('active');
-      
-      // Set up confirm button
-      elements.modalConfirm.onclick = () => {
-        confirmCallback();
-      };
-    }
-
-    // Hide modal
-    function hideModal() {
-      elements.modal.classList.remove('active');
-    }
-
-    // Theme toggle
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      elements.themeToggle.innerHTML = isDark ? 
-        '<i class="fas fa-sun"></i>' : 
-        '<i class="fas fa-moon"></i>';
-    }
-
-    // Install app (PWA)
-    function installApp() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            showToast('App installed successfully!', 'success');
-          }
-          deferredPrompt = null;
-        });
-      }
-    }
-
-    // PWA Install Prompt
+    // PWA Installation
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      elements.installBtn.style.display = 'inline-flex';
+      
+      // Show install prompt
+      Utils.showToast('Install Alkhulafau SHS App for better experience', 'info', 10000);
     });
 
-    // Initialize theme
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.body.classList.toggle('dark', currentTheme === 'dark');
-    elements.themeToggle.innerHTML = currentTheme === 'dark' ? 
-      '<i class="fas fa-sun"></i>' : 
-      '<i class="fas fa-moon"></i>';
-
-    // Initialize the app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', init);
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('SW registered: ', registration);
+        })
+        .catch(registrationError => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
   </script>
 </body>
 </html>
